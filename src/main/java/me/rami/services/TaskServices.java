@@ -14,6 +14,7 @@ import me.rami.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
@@ -39,15 +40,15 @@ public class TaskServices {
         this.mapper = mapper;
     }
     
-    
-    public void onMessage(String message) throws JMSException {
+    @EventListener
+    public void onMessage(String message)  {
         log.debug("Got a message <{}>", message);
         try {
             Event event = mapper.readValue(message, Event.class);
             onMessage(event);
         } catch (Exception ex) {
             log.error("Encountered error while parsing message.",ex);
-            throw new JMSException("Encountered error while parsing message.");
+           
         }
     }
 

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import me.rami.services.AWSSimpleQueueServiceUtil;
 import me.rami.Application;
 import me.rami.config.SqsConfig;
 import me.rami.model.Event;
@@ -13,6 +12,7 @@ import me.rami.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
@@ -44,7 +44,7 @@ public class TaskProcessor  {
     }
 
     @Async
-  
+    @EventListener
     public void onMessage(String message) throws JMSException, JmsException, InterruptedException {
         log.debug("Got a message <{}>", message);
         try {
