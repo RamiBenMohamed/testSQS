@@ -15,9 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Ruslan Molchanov (ruslanys@gmail.com)
- */
+
 @Controller
 public class MainController {
 

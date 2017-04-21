@@ -1,5 +1,6 @@
 package me.rami.component;
 
+import com.amazonaws.services.elasticbeanstalk.model.Queue;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
@@ -19,16 +20,22 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
 import java.io.IOException;
 import java.util.Random;
 
-/**
- * @author Ruslan Molchanov (ruslanys@gmail.com)
- */
+
 @Component
 @Slf4j
-public class TaskProcessor  {
+public class TaskProcessor implements MessageListener  {
 	private static final Logger log = LoggerFactory.getLogger(TaskProcessor.class);
 	
 	SqsConfig sqsConfig;
@@ -39,22 +46,12 @@ public class TaskProcessor  {
 
     @Autowired
     public TaskProcessor(SqsConfig sqsConfig, ObjectMapper mapper) {
-    	this.sqsConfig=sqsConfig.getInstance();
+    	this.sqsConfig=sqsConfig;
         this.mapper = mapper;
     }
 
-    @Async
-    @EventListener
-    public void onMessage(String message) throws JMSException, JmsException, InterruptedException {
-        log.debug("Got a message <{}>", message);
-        try {
-            Task task = mapper.readValue(message, Task.class);
-            onMessage(task);
-        } catch (IOException ex) {
-            log.error("Encountered error while parsing message.", ex);
-            throw new JMSException("Encountered error while parsing message.");
-        }
-    }
+    
+   
 
     @SneakyThrows
     private void onMessage(Task task) throws  JsonProcessingException, InterruptedException {
@@ -75,9 +72,45 @@ public class TaskProcessor  {
     }
 
     @SneakyThrows
-    private void sendEvent(Event event) throws JmsException, JsonProcessingException {
-    	 sqsConfig.sendMessageToQueue(sqsConfig.getQueueProcessorName(), mapper.writeValueAsString(event));
+    private void sendEvent(Event event) throws  JsonProcessingException {
+    	Session session = sqsConfig.getConnetion().createSession(false, Session.AUTO_ACKNOWLEDGE);
+    	Queue queue = (Queue) session.createQueue("ramiQ");
+    	// Create a producer for the 'TestQueue'.
+    	MessageProducer producer = session.createProducer((Destination) queue);
+    	TextMessage message = session.createTextMessage(mapper.writeValueAsString(event));
+    	// Send the message.
+    	producer.send(message);
+    	System.out.println("JMS Message " + message.getJMSMessageID());
+      
           }
+    @Async
+	public void onMessage(Message message) {
+		// TODO Auto-generated method stub
+		 log.debug("Got a message <{}>", message);
+		 Session session;
+		 Queue queue = (Queue) session.createQueue("ramiQa");
+		 MessageConsumer consumer;
+		 try {
+			 // Cast the received message as TextMessage and print the text to screen.
+			 if (message != null) {
+			 System.out.println("Received: " + ((TextMessage) message).getText());
+			  consumer = session.createConsumer((Destination) queue);
+			// Instantiate and set the message listener for the consumer.
+			consumer.setMessageListener(new TaskProcessor(sqsConfig, mapper));
+			// Start receiving incoming messages.
+			sqsConfig.getConnetion().start();
+			// Wait for 1 second. The listener onMessage() method will be invoked when a message is
+			
+			Thread.sleep(1000);
+
+			 }
+		 }
+		 catch (JMSException e) {
+			 e.printStackTrace();
+		}
+			 
+		
+	}
  
 
 }

@@ -1,141 +1,67 @@
 package me.rami.config;
 
 
+import com.amazon.sqs.javamessaging.AmazonSQSMessagingClientWrapper;
+import com.amazon.sqs.javamessaging.SQSConnection;
+import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazonaws.auth.BasicAWSCredentials;
-
+import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.io.FileInputStream;
 import java.util.List;
 import java.util.Properties;
+
+import javax.jms.JMSException;
+
 import org.springframework.context.annotation.Bean;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Service;
+
 @Configuration
+@EnableJms
 public class SqsConfig {
-	private BasicAWSCredentials credentials;
-    private AmazonSQS sqs;
-    private String simpleQueue = "ramiQa";
-    private String sQueue="ramiQ";
-    private static volatile  SqsConfig awssqsUtil = new SqsConfig();
-	
-	@Autowired
-	private  SqsConfig()  {
-        try{
-        	
-        	Properties properties = new Properties();
-            properties.load(new FileInputStream("src/main/java/AwsCredentials.properties"));
-            this.credentials = new   BasicAWSCredentials(properties.getProperty("accessKey"),
-                                                         properties.getProperty("secretKey"));
-            this.simpleQueue = "ramiQa";
-            this.sQueue="ramiQ";
+	SQSConnectionFactory connectionFactory;
+	SQSConnection connection;
+	public SqsConfig(@Value("${aws.access-key}") String awsAccessKey,
+            @Value("${aws.secret-key}") String awsSecretKey) throws JMSException{
+			this.connectionFactory =
+			 SQSConnectionFactory.builder()
+			 .withRegion(Region.getRegion(Regions.EU_CENTRAL_1))
+			 .withAWSCredentialsProvider(new StaticCredentialsProvider(
+                     new BasicAWSCredentials(awsAccessKey, awsSecretKey)
+             ))
+			 .build();
+			// Create the connection.
+			this.connection = connectionFactory.createConnection();
+			AmazonSQSMessagingClientWrapper client = connection.getWrappedAmazonSQSClient();
+			// Create an SQS queue named 'TestQueue' – if it does not already exist.
+			if (!client.queueExists("ramiQa")) {
+				System.out.println("client ramiQa inexistant");
+			 client.createQueue("ramiQa");
+			}
+			if (!client.queueExists("ramiQ")) {
+				System.out.println("cleint ramiQ inexistant");
+				 client.createQueue("ramiQ");
+				}
 
-            this.sqs = new AmazonSQSClient(this.credentials);
-            /**
-             * My queue is in singapore region which has following endpoint for sqs
-             * https://sqs.ap-southeast-1.amazonaws.com
-             * you can find your endpoints here
-             * http://docs.aws.amazon.com/general/latest/gr/rande.html
-             *
-             * Overrides the default endpoint for this client ("sqs.us-east-1.amazonaws.com")
-             */
-            this.sqs.setEndpoint("https://sqs.eu-central-1.amazonaws.com");
-            /**
-               You can use this in your web app where    AwsCredentials.properties is stored in web-inf/classes
-             */
-            //AmazonSQS sqs = new AmazonSQSClient(new ClasspathPropertiesFileCredentialsProvider());
+	}
+	public SQSConnection getConnetion(){
+		return connection;
+	}
+	 @Bean
+	    public JmsTemplate jmsTemplate() {
+	    	
+	        return new JmsTemplate(connectionFactory);
+	    }
 
-        }catch(Exception e){
-            System.out.println("exception while creating awss3client : " + e);
-        }
-    }
-	@Bean
-	public static SqsConfig getInstance(){
-        return awssqsUtil;
-    }
-	@Bean
-    public AmazonSQS getAWSSQSClient(){
-         return awssqsUtil.sqs;
-    }
-	@Bean
-    public String getQueueName(){
-         return awssqsUtil.simpleQueue;
-    }
-	@Bean
-    public String getQueueProcessorName(){
-    	return awssqsUtil.sQueue;
-    }
-    /**
-     * Creates a queue in your region and returns the url of the queue
-     * @param queueName
-     * @return
-     */
-	@Bean
-    public String createQueue(String queueName){
-        CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
-        String queueUrl = this.sqs.createQueue(createQueueRequest).getQueueUrl();
-        return queueUrl;
-    }
-
-    /**
-     * returns the queueurl for for sqs queue if you pass in a name
-     * @param queueName
-     * @return
-     */
-	@Bean
-    public String getQueueUrl(String queueName){
-        GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest(queueName);
-        return this.sqs.getQueueUrl(getQueueUrlRequest).getQueueUrl();
-    }
-
-    /**
-     * lists all your queue.
-     * @return
-     */
-	@Bean
-    public ListQueuesResult listQueues(){
-       return this.sqs.listQueues();
-    }
-
-    /**
-     * send a single message to your sqs queue
-     * @param queueUrl
-     * @param message
-     */
-	@Bean
-    public void sendMessageToQueue(String queueUrl, String message){
-        SendMessageResult messageResult =  this.sqs.sendMessage(new SendMessageRequest(queueUrl, message));
-        System.out.println(messageResult.toString());
-    }
-
-    /**
-     * gets messages from your queue
-     * @param queueUrl
-     * @return
-     */
-	@Bean
-    public List<Message> getMessagesFromQueue(String queueUrl){
-       ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
-       List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
-       return messages;
-    }
-
-    /**
-     * deletes a single message from your queue.
-     * @param queueUrl
-     * @param message
-     */
-	@Bean
-    public void deleteMessageFromQueue(String queueUrl, Message message){
-        String messageRecieptHandle = message.getReceiptHandle();
-        System.out.println("message deleted : " + message.getBody() + "." + message.getReceiptHandle());
-        sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageRecieptHandle));
-    }
-
- 
-
-
-	
 }
