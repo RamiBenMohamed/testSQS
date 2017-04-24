@@ -87,10 +87,11 @@ public class TaskProcessor implements MessageListener  {
 	public void onMessage(Message message) {
 		// TODO Auto-generated method stub
 		 log.debug("Got a message <{}>", message);
-		 Session session;
+		try{
+		 Session session = sqsConfig.getConnetion().createSession(false, Session.AUTO_ACKNOWLEDGE);
 		 Queue queue = (Queue) session.createQueue("ramiQa");
 		 MessageConsumer consumer;
-		 try {
+		
 			 // Cast the received message as TextMessage and print the text to screen.
 			 if (message != null) {
 			 System.out.println("Received: " + ((TextMessage) message).getText());
@@ -108,6 +109,9 @@ public class TaskProcessor implements MessageListener  {
 		 catch (JMSException e) {
 			 e.printStackTrace();
 		}
+		catch (InterruptedException e) {
+            System.out.println("Interrupted.");
+	 }
 			 
 		
 	}

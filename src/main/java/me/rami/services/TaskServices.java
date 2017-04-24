@@ -33,7 +33,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 
-@Component
+@Service
 @Slf4j
 public class TaskServices implements MessageListener {
 	private static final Logger log = LoggerFactory.getLogger(TaskServices.class);
@@ -73,10 +73,11 @@ public class TaskServices implements MessageListener {
 	public void onMessage(javax.jms.Message message) {
 		// TODO Auto-generated method stub
 		 log.debug("Got a message <{}>", message);
-		 Session session;
+		 try {
+		 Session session = sqsConfig.getConnetion().createSession(false, Session.AUTO_ACKNOWLEDGE);
 		 Queue queue = (Queue) session.createQueue("ramiQ");
 		 MessageConsumer consumer;
-		 try {
+		 
 			 // Cast the received message as TextMessage and print the text to screen.
 			 if (message != null) {
 			 System.out.println("Received: " + ((TextMessage) message).getText());
@@ -86,10 +87,12 @@ public class TaskServices implements MessageListener {
 			// Start receiving incoming messages.
 			sqsConfig.getConnetion().start();
 			// Wait for 1 second. The listener onMessage() method will be invoked when a message is
-			
 			Thread.sleep(1000);
 
 			 }
+		 }
+		 catch (InterruptedException e) {
+	            System.out.println("Interrupted.");
 		 }
 		 catch (JMSException e) {
 			 e.printStackTrace();
