@@ -33,7 +33,7 @@ public class SQSConfig {
 
 	    AWSSecurityTokenServiceClient stsClient = new  AWSSecurityTokenServiceClient(credentials);
 	    AssumeRoleRequest assumeRequest = new AssumeRoleRequest()
-	            .withRoleArn("arn:aws:iam::347970623729:role/dae_from_support")
+	            .withRoleArn("")
 	            .withDurationSeconds(3600)
 	            .withRoleSessionName("blabla");
 
