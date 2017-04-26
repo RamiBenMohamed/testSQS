@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
-Implementation-Title: spring-boot-sqs
+Implementation-Title: TestSQS_1
 Implementation-Version: 0.0.1-SNAPSHOT
 Built-By: R694C
-Implementation-Vendor-Id: testSQS
+Implementation-Vendor-Id: TestSQS_1
 Class-Path: spring-boot-starter-web-1.4.0.RELEASE.jar spring-boot-star
  ter-1.4.0.RELEASE.jar spring-boot-1.4.0.RELEASE.jar spring-boot-autoc
  onfigure-1.4.0.RELEASE.jar spring-boot-starter-logging-1.4.0.RELEASE.
@@ -62,7 +62,7 @@ Class-Path: spring-boot-starter-web-1.4.0.RELEASE.jar spring-boot-star
  -sqs-java-messaging-lib-1.0.1.jar geronimo-jms_1.1_spec-1.1.1.jar slf
  4j-api-1.7.21.jar
 Build-Jdk: 1.8.0_121
-Implementation-URL: http://projects.spring.io/spring-boot/testSQS/
+Implementation-URL: http://projects.spring.io/spring-boot/TestSQS_1/
 Created-By: Maven Integration for Eclipse
 Implementation-Vendor: Pivotal Software, Inc.
 Main-Class: me.rami.Application
