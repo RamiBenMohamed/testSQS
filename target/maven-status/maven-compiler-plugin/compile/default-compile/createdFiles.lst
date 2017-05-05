@@ -1,0 +1,7 @@
+me/Rami/MainController.class
+me/Rami/listener/SQSListener.class
+me/Rami/MessageService.class
+me/Rami/config/SQSConfig.class
+me/Rami/config/JMSSQSConfig.class
+me/Rami/MessageService$1.class
+me/Rami/Application.class

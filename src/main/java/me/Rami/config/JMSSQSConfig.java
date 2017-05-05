@@ -16,11 +16,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
-
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 @Configuration
 public class JMSSQSConfig {
 	
-	private String endpoint="http://localhost:9324";
+
+
 	
 	private String queueName="QueueR";
 	@Autowired
@@ -30,7 +32,6 @@ public class JMSSQSConfig {
 	public DefaultMessageListenerContainer jmsListenerContainer() {
 		SQSConnectionFactory sqsConnectionFactory = SQSConnectionFactory.builder()
 				.withAWSCredentialsProvider(new DefaultAWSCredentialsProviderChain())
-				.withEndpoint(endpoint)
 				.withAWSCredentialsProvider(new StaticCredentialsProvider(
 						 getCredentials()))
 				.withNumberOfMessagesToPrefetch(10).build();
@@ -43,10 +44,10 @@ public class JMSSQSConfig {
 	@Bean
  	public JmsTemplate createJMSTemplate() {
 	 SQSConnectionFactory sqsConnectionFactory = SQSConnectionFactory.builder()
-			 .withAWSCredentialsProvider(new StaticCredentialsProvider(
+			.withRegion(Region.getRegion(Regions.EU_CENTRAL_1))	
+			.withAWSCredentialsProvider(new StaticCredentialsProvider(
 					 getCredentials()
 		             ))
-			 .withEndpoint(endpoint)
 			 .withNumberOfMessagesToPrefetch(10).build();
 	JmsTemplate jmsTemplate = new JmsTemplate(sqsConnectionFactory);
 	jmsTemplate.setDefaultDestinationName(queueName);
@@ -70,7 +71,7 @@ public class JMSSQSConfig {
 		    
 		    AWSSecurityTokenServiceClient stsClient = new  AWSSecurityTokenServiceClient(credentials);
 		    AssumeRoleRequest assumeRequest = new AssumeRoleRequest()
-		            .withRoleArn("")
+		            .withRoleArn("arn:aws:iam::347970623729:role/dae_from_support")
 		            .withDurationSeconds(3600)
 		            .withRoleSessionName("blabla");
 

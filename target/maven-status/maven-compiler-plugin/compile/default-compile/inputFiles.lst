@@ -1,0 +1,6 @@
+/home/ramibenmoh/workspace/DAEMOM/testSQS/src/main/java/me/Rami/MessageService.java
+/home/ramibenmoh/workspace/DAEMOM/testSQS/src/main/java/me/Rami/Application.java
+/home/ramibenmoh/workspace/DAEMOM/testSQS/src/main/java/me/Rami/listener/SQSListener.java
+/home/ramibenmoh/workspace/DAEMOM/testSQS/src/main/java/me/Rami/config/SQSConfig.java
+/home/ramibenmoh/workspace/DAEMOM/testSQS/src/main/java/me/Rami/config/JMSSQSConfig.java
+/home/ramibenmoh/workspace/DAEMOM/testSQS/src/main/java/me/Rami/MainController.java

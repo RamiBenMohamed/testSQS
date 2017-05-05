@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
-
 @Service
-public class MessageService {
+public class MessageService { 
+
 	@Autowired
 	private JmsTemplate jmsTemplate;
-	private String queueName="ramiQa";
-	
+	private String queueName="QueueR";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageService.class);
 	public void sendMessage(final String message) {
 		jmsTemplate.send(queueName, new MessageCreator() {
